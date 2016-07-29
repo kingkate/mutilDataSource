@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:aop="http://www.springframework.org/schema/aop"
+ xmlns:tx="http://www.springframework.org/schema/tx"
+ xmlns:context="http://www.springframework.org/schema/context"
+ xsi:schemaLocation="
+       http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+       http://www.springframework.org/schema/tx 
+       http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context-4.0.xsd
+       http://www.springframework.org/schema/aop 
+       http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+
+
+	<tx:annotation-driven/>
+	<context:component-scan base-package="multildatasource"/>
+	<context:property-placeholder location="classpath:*.properties"/>
+	<!-- dataSource -->
+	<bean id="test" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${test.jdbc.driver}"/>
+		<property name="user" value="${test.jdbc.username}"/>
+		<property name="password" value="${test.jdbc.password}"/>
+		<property name="jdbcUrl" value="${test.jdbc.url}"/>
+		<property name="acquireIncrement" value="1" />
+		<property name="initialPoolSize" value="30" />
+		<property name="maxPoolSize" value="30" />
+		<property name="minPoolSize" value="30" />
+		<property name="maxStatements" value="100" />
+		<property name="testConnectionOnCheckout" value="true" />
+	</bean>
+	<bean id="test1" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${test1.jdbc.driver}"/>
+		<property name="user" value="${test1.jdbc.username}"/>
+		<property name="password" value="${test1.jdbc.password}"/>
+		<property name="jdbcUrl" value="${test1.jdbc.url}"/>
+		<property name="acquireIncrement" value="1" />
+		<property name="initialPoolSize" value="30" />
+		<property name="maxPoolSize" value="30" />
+		<property name="minPoolSize" value="30" />
+		<property name="maxStatements" value="100" />
+		<property name="testConnectionOnCheckout" value="true" />
+	</bean>
+	
+	<!-- <bean id="propertisBean" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<list>
+				<value>classpath:*.properties</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="propertiesConfig" class="org.springframework.beans.factory.config.PreferencesPlaceholderConfigurer">
+		<property name="properties" ref="propertiesBean"></property>
+	</bean> -->
+	
+	<bean id="test2" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${test2.jdbc.driver}"/>
+		<property name="user" value="${test2.jdbc.username}"/>
+		<property name="password" value="${test2.jdbc.password}"/>
+		<property name="jdbcUrl" value="${test2.jdbc.url}"/>
+		<property name="acquireIncrement" value="1" />
+		<property name="initialPoolSize" value="30" />
+		<property name="maxPoolSize" value="30" />
+		<property name="minPoolSize" value="30" />
+		<property name="maxStatements" value="100" />
+		<property name="testConnectionOnCheckout" value="true" />
+	</bean>
+	
+	<bean id="multilDataSource" class="multildatasource.DynamicDataSource">
+		<property name="targetDataSources">
+			<map>
+				<entry key="test1" value-ref="test1"></entry>
+				<entry key="test2" value-ref="test2"></entry>
+			</map>
+		</property>
+		<property name=""></property>
+	</bean>
+	<!-- AOP配置 -->
+	<aop:aspectj-autoproxy/>
+	<bean id="dataSourceAdvisor" class="multildatasource.DataSourceAdvisor" />
+	<aop:config>
+		<aop:aspect id="c" ref="dataSourceAdvisor">
+			<aop:pointcut id="tx" expression="execution(* multildatasource.*.*(..))"/>
+			<aop:around pointcut-ref="tx" method="changeDataSource"/>
+			<aop:before method="before" pointcut-ref="tx"/>
+			<aop:after-returning method="after" pointcut-ref="tx"/>
+		</aop:aspect>
+	</aop:config>
+	
+	
+	
+	</beans>
+
